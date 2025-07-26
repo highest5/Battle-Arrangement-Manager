@@ -1,1 +1,9 @@
 BAM.zip filter=lfs diff=lfs merge=lfs -text
+Standalone/BAM.zip filter=lfs diff=lfs merge=lfs -text
+Files/Citadel filter=lfs diff=lfs merge=lfs -text
+Sick filter=lfs diff=lfs merge=lfs -text
+Files/Documents/BAM/Standalone/BAM.zip filter=lfs diff=lfs merge=lfs -text
+G:/My filter=lfs diff=lfs merge=lfs -text
+Drive/My filter=lfs diff=lfs merge=lfs -text
+G:/My[[:space:]]Drive/My[[:space:]]Files/Citadel[[:space:]]Sick[[:space:]]Files/Documents/BAM/Standalone/BAM.zip filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
