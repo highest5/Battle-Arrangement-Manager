@@ -10,19 +10,24 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 customtkinter.set_appearance_mode("dark")
 
 master = CTk()                                                               
-master.title("Battle Arrangement Manager")        
-# master.configure(fg_color="#ADD8E6")                                   
+master.title("Battle Arrangement Manager")                                   
 sh = master.winfo_screenheight()                                            
 sw = master.winfo_screenwidth()                                             
 master.geometry('%dx%d+%d+%d' % (sw/2,sh-80,-8,0))
+file_path = os.path.dirname(os.path.realpath(__file__))
+master.iconbitmap(file_path+'\\BAM.ico')
+POPPANE = None
 
 def open_file():
     global PermaList,turn,turnnum
     filename = filedialog.askopenfilename()
-    delete_all()
     file = open(f"{filename}",'r')
     data = file.read()
     DataList = ast.literal_eval(data)
+    turn = DataList[4]
+    PermaList = DataList[2]
+    turnnum = len(PermaList)
+    delete_all()
     PList = DataList[0]
     EList = DataList[1]
     for i in range(len(PList)):
@@ -31,12 +36,14 @@ def open_file():
     for i in range(len(EList)):
         for j in range(len(EList[i])-1):      
             ENameList[i][j].insert(customtkinter.END,EList[i][j])
-    PermaList = DataList[2]
-    turn = DataList[4]
-    turnnum = len(PermaList)
     print_names(PermaList)
     StatList = DataList[3]
+    StatBox.delete(1.0,'end')
     StatBox.insert(customtkinter.END,StatList)
+    if hasattr(POPPANE, 'winfo_exists'):
+        if POPPANE.winfo_exists():
+            PopStatBox.delete(1.0,'end')
+            PopStatBox.insert(customtkinter.END,StatList)
     highlight(turn)
     
         
@@ -96,12 +103,20 @@ def delete_enemies():
 def delete_order():
     NameBox.delete(1.0,'end')
     HPBox.delete(1.0,'end')
+    if hasattr(POPPANE, 'winfo_exists'):
+        if POPPANE.winfo_exists():
+            PopNameBox.delete(1.0,'end')
     
 def delete_conditions():
     global turnnum
     StatBox.delete(1.0,'end')
     for i in range(turnnum-1):
         StatBox.insert("end",'\n')
+    if hasattr(POPPANE, 'winfo_exists'):
+        if POPPANE.winfo_exists():
+            PopStatBox.delete(1.0,'end')
+            # for i in range(turnnum-1):
+                # PopStatBox.insert("end",'\n')
             
 def delete_all():
     if messagebox.askokcancel("Are you sure?","Pressing 'ok' will erase all entries. Proceed?"):
@@ -110,7 +125,8 @@ def delete_all():
                 j.delete(0,customtkinter.END)
         delete_enemies()
         delete_order()
-        delete_conditions
+        delete_conditions()
+        
 
 FilePane = CTkFrame(master)
 FilePane.grid(row=0,column=0,sticky=N+E+W+S)
@@ -247,15 +263,21 @@ def add_enemies():
             else: hp = ""
             if ini > PermaList[turn-1][1]:
                 turn+=1
-            PermaList.append([name,ini,dex,hp,"A"])
+            newel = [name,ini,dex,hp,"A"]
+            PermaList.append(newel)
     PermaList=sorted(PermaList,key=lambda x: (-x[1],-x[2]))
+    newelpos = PermaList.index(newel)
+    StatBox.insert(str(newelpos)+".end",'\n')
     print_names(PermaList)
     highlight(turn)
-    
     
 def strikethrough(line):
     NameBox.tag_config("strikethrough",overstrike=True,foreground='red')
     NameBox.tag_add("strikethrough", str(line+0.0), str(line)+".end")
+    if hasattr(POPPANE, 'winfo_exists'):
+        if POPPANE.winfo_exists():
+            PopNameBox.tag_config("strikethrough",overstrike=True,foreground='red')
+            PopNameBox.tag_add("strikethrough", str(line+0.0), str(line)+".end")
 
 def print_names(ConList):
     NameBox.delete("1.0", customtkinter.END)
@@ -263,20 +285,27 @@ def print_names(ConList):
     for k in ConList:
         NameBox.insert("end",k[0]+"\n")
         HPBox.insert("end",str(k[3])+"\n")
-        if k[4]=="D":
-            strikethrough(ConList.index(k)+1)
+    if hasattr(POPPANE, 'winfo_exists'):
+        if POPPANE.winfo_exists():
+            pop_copy()
+    for k in range(len(ConList)):
+        if ConList[k][4]=="D":
+            strikethrough(k+1)
         
 def first_print():
-    global turn,turnnum,PermaList
+    global turn,turnnum,PermaList,POPPANE
     turn = 1
     FirstList=assemble()
     turnnum = len(FirstList)
     print_names(FirstList)
-    highlight(turn)
     PermaList = FirstList
     StatBox.delete('0.0','end')
     for i in range(turnnum-1):
         StatBox.insert("end",'\n')
+    if hasattr(POPPANE, 'winfo_exists'):
+        if POPPANE.winfo_exists():
+            pop_copy()
+    highlight(turn)
 
 DataFrame = CTkFrame(master)
 DataFrame.grid(row=6,column=0,columnspan=2,sticky=N+E+W+S)    
@@ -304,10 +333,17 @@ def highlight(line):
     NameBox.tag_add("highlight_line", str(line+0.0), str(line)+".end")
     HPBox.tag_config("highlight_line", background="darkmagenta")
     HPBox.tag_add("highlight_line", str(line+0.0), str(line)+".end")
+    if hasattr(POPPANE, 'winfo_exists'):
+        if POPPANE.winfo_exists():
+            PopNameBox.tag_config("highlight_line", background="gold",foreground="black")
+            PopNameBox.tag_add("highlight_line", str(line+0.0), str(line)+".end")
     
 def unhighlight(line):
     NameBox.tag_remove("highlight_line", str(line+0.0), str(line)+".end")
     HPBox.tag_remove("highlight_line", str(line+0.0), str(line)+".end")
+    if hasattr(POPPANE, 'winfo_exists'):
+        if POPPANE.winfo_exists():
+            PopNameBox.tag_remove("highlight_line", str(line+0.0), str(line)+".end")
     
 def get_list():
     global turnnum,PermaList
@@ -345,17 +381,53 @@ def down():
     turn = (turn-1)%(len(TurnList))+1
     highlight(turn)
 
+def on_closing():
+    POPPANE.destroy()
+    
+def pop_copy():
+    PopNameBox.delete("1.0",customtkinter.END)
+    PopNameBox.insert('end',NameBox.get("1.0",customtkinter.END))
+    PopStatBox.delete(1.0,'end')
+    PopStatBox.insert(customtkinter.END,StatBox.get("1.0",customtkinter.END))
+
+def pop_out():
+    global POPPANE, PopNameBox, PopStatBox
+    POPPANE = CTkToplevel(master)
+    POPPANE.geometry('%dx%d+%d+%d' % (370,1000,1000,0))
+    POPPANE.protocol("WM_DELETE_WINDOW", on_closing)
+    POPPANE.title('Search For Report')
+    PopDisp = CTkFrame(POPPANE)
+    PopDisp.grid(row=0,column=0,rowspan=3,sticky=N+E+W+S,ipadx=3,ipady=3)
+
+    PopNameLabel = CTkLabel(PopDisp,text="Name")
+    PopNameLabel.grid(row=0,column=0)
+
+    PopStatLabel = CTkLabel(PopDisp,text="Condition")
+    PopStatLabel.grid(row=0,column=1)
+
+    PopNameBox = CTkTextbox(PopDisp,wrap="none",corner_radius=1,font=("Helvetica", 30),height=950,width=200)
+    PopNameBox.grid(row=1,column=0,padx=(3,0),pady=(3,0))
+
+    PopStatBox = CTkTextbox(PopDisp,wrap="none",corner_radius=1,font=("Helvetica", 30),height=950,width=160)
+    PopStatBox.grid(row=1,column=1,padx=(0,0),pady=(3,0))
+    PopStatBox.insert("end",'\n')
+    print_names(PermaList)
+    highlight(turn)
+
 TurnFrame = CTkFrame(master)
 TurnFrame.grid(row=5,column=1,sticky=N+E+W+S)
 
 NEXT = CTkButton(TurnFrame,text="NEXT TURN",command=next_turn)
-NEXT.grid(row=0,column=0,padx=40,pady=10,sticky=N+E+W+S)
+NEXT.grid(row=0,column=0,padx=20,pady=10,sticky=N+E+W+S)
 
 UP = CTkButton(TurnFrame,text="\u2191",width=20,command=up)
 UP.grid(row=0,column=1,padx=10,pady=15,sticky=N+E+W+S)
 
 DOWN = CTkButton(TurnFrame,text="\u2193",width=20,command=down)
 DOWN.grid(row=0,column=2,padx=10,pady=15,sticky=N+E+W+S)
+
+POP = CTkButton(TurnFrame,text="\u2750",width=20,command=pop_out)
+POP.grid(row=0,column=3,padx=40,pady=15,sticky=N+E+W+S)
 
 DamFrame = CTkFrame(master)
 DamFrame.grid(row=4,column=1,sticky=N+E+W+S)
@@ -367,16 +439,18 @@ DamEnt = CTkEntry(DamFrame)
 DamEnt.grid(row=1,column=0,columnspan=2)
 
 def kill():
-    global PermaList
+    global PermaList, turn
     PermaList[turn-1][3]=0
     PermaList[turn-1][4]="D"
     print_names(PermaList)
+    highlight(turn)
     
 def revive():
     global PermaList
     PermaList[turn-1][3]=1
     PermaList[turn-1][4]="A"
     print_names(PermaList)
+    highlight(turn)
     
 def hurt():
     global turn, PermaList
@@ -432,6 +506,10 @@ def print_con(n):
     StatBox.delete(turn+0.0,str(turn)+'.end')
     StatBox.insert(turn+0.0,constr)
     StatBox.insert(str(turn)+'.end',newcon)
+    if hasattr(POPPANE, 'winfo_exists'):
+        if POPPANE.winfo_exists():
+            PopStatBox.delete(1.0,customtkinter.END)
+            PopStatBox.insert('end',StatBox.get(1.0,customtkinter.END))
 
 for i in range(int(len(conditions)/5)):
     for j in range(int(len(conditions)/3)):
