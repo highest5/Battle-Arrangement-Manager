@@ -395,7 +395,7 @@ def pop_out():
     POPPANE = CTkToplevel(master)
     POPPANE.geometry('%dx%d+%d+%d' % (370,1000,1000,0))
     POPPANE.protocol("WM_DELETE_WINDOW", on_closing)
-    POPPANE.title('Search For Report')
+    POPPANE.title('Turn List')
     PopDisp = CTkFrame(POPPANE)
     PopDisp.grid(row=0,column=0,rowspan=3,sticky=N+E+W+S,ipadx=3,ipady=3)
 
